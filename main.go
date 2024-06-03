@@ -8,12 +8,18 @@ import (
 
 func main() {
 	fmt.Println("Starting...")
+	port := "8080"
 	mux := http.NewServeMux()
-	rh := http.RedirectHandler("http://localhost", 307)
+	mux.Handle("/", http.FileServer(http.Dir(".")))
 
-	mux.Handle("/", rh)
+	server := &http.Server{
+		Addr:    ":" + port,
+		Handler: mux,
+	}
 
-	log.Println("Listening...")
-
-	http.ListenAndServe(":8080", mux)
+	log.Printf("Serving on port: %s\n", port)
+	err := server.ListenAndServe()
+	if err != nil {
+		log.Fatal("Something went wrong")
+	}
 }
