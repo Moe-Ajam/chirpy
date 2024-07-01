@@ -13,6 +13,8 @@ type responseBody struct {
 
 var counter int
 
+var responseBodies []responseBody
+
 func createChirp(w http.ResponseWriter, r *http.Request) {
 
 	type parameters struct {
@@ -38,7 +40,10 @@ func createChirp(w http.ResponseWriter, r *http.Request) {
 	counter++
 	newId := counter
 
-	respondWithJSON(w, 200, responseBody{Id: newId, CleanedBody: cleanedBody})
+	responseBodies = append(responseBodies, responseBody{Id: newId, CleanedBody: cleanedBody})
+
+	// respondWithJSON(w, 200, responseBody{Id: newId, CleanedBody: cleanedBody})
+	respondWithJSON(w, 200, responseBodies)
 
 	// ..
 	// params is a struct with data populated successfully
