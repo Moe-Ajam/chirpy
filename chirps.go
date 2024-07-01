@@ -2,16 +2,19 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strings"
 )
 
 type responseBody struct {
+	Id          int    `json:"id"`
 	CleanedBody string `json:"cleaned_body"`
 }
 
-func validateChirpyRequestHandler(w http.ResponseWriter, r *http.Request) {
+var counter int
+
+func createChirp(w http.ResponseWriter, r *http.Request) {
+
 	type parameters struct {
 		Body string `json:"body"`
 	}
@@ -25,21 +28,17 @@ func validateChirpyRequestHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Println("Validation request received...")
-
 	if len(params.Body) > 140 {
 		respondWithError(w, 400, "Chirp is too long")
 		return
 	}
 
-	// respondWithJSON(w, 200, responseBody{Valid: true})
-
 	cleanedBody := validateProfane(params.Body)
 
-	respondWithJSON(w, 200, responseBody{CleanedBody: cleanedBody})
-	// TODO: remove if not needed
-	// do i really need this ??
-	// respondWithJSON(w, 200, params)
+	counter++
+	newId := counter
+
+	respondWithJSON(w, 200, responseBody{Id: newId, CleanedBody: cleanedBody})
 
 	// ..
 	// params is a struct with data populated successfully

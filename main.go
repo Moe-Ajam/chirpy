@@ -82,7 +82,7 @@ func main() {
 	mux.HandleFunc("GET /admin/metrics", apiCfg.metricHandler)
 	mux.HandleFunc("/api/reset", apiCfg.reset)
 	mux.HandleFunc("/api/test", testing)
-	mux.HandleFunc("POST /api/validate_chirp", validateChirpyRequestHandler)
+	mux.HandleFunc("POST /api/chirps", createChirp)
 
 	srv := &http.Server{
 		Addr:    ":" + port,
