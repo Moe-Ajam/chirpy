@@ -6,14 +6,14 @@ import (
 	"strings"
 )
 
-type responseBody struct {
+type ResponseBody struct {
 	Id          int    `json:"id"`
 	CleanedBody string `json:"cleaned_body"`
 }
 
 var counter int
 
-var responseBodies []responseBody
+var responseBodies []ResponseBody
 
 func createChirp(w http.ResponseWriter, r *http.Request) {
 
@@ -40,7 +40,7 @@ func createChirp(w http.ResponseWriter, r *http.Request) {
 	counter++
 	newId := counter
 
-	responseBodies = append(responseBodies, responseBody{Id: newId, CleanedBody: cleanedBody})
+	responseBodies = append(responseBodies, ResponseBody{Id: newId, CleanedBody: cleanedBody})
 
 	// respondWithJSON(w, 200, responseBody{Id: newId, CleanedBody: cleanedBody})
 	respondWithJSON(w, 200, responseBodies)
