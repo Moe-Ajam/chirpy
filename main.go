@@ -34,6 +34,7 @@ func main() {
 	mux.HandleFunc("GET /api/reset", apiCfg.handlerReset)
 	mux.HandleFunc("POST /api/chirps", apiCfg.handlerChirpsCreate)
 	mux.HandleFunc("GET /api/chirps", apiCfg.handlerChirpsRetrieve)
+	mux.HandleFunc("GET /api/chirps/{id}", apiCfg.handlerChirpsRetrieveById)
 
 	mux.HandleFunc("GET /admin/metrics", apiCfg.handlerMetrics)
 
@@ -45,4 +46,3 @@ func main() {
 	log.Printf("Serving files from %s on port: %s\n", filepathRoot, port)
 	log.Fatal(srv.ListenAndServe())
 }
-
