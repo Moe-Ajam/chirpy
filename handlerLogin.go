@@ -13,6 +13,7 @@ type LoginResponse struct {
 }
 
 func (cfg *apiConfig) handlerLogin(w http.ResponseWriter, r *http.Request) {
+
 	type parameters struct {
 		Password string `json:"password"`
 		Email    string `json:"email"`
@@ -39,8 +40,6 @@ func (cfg *apiConfig) handlerLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// user, err = cfg.DB.CreateUser(params.Email, params.Password)
-
 	cmpResult := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(params.Password))
 
 	if cmpResult != nil {
@@ -52,5 +51,4 @@ func (cfg *apiConfig) handlerLogin(w http.ResponseWriter, r *http.Request) {
 		ID:    user.ID,
 		Email: user.Email,
 	})
-
 }
