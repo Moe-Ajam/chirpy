@@ -38,6 +38,8 @@ func main() {
 
 	mux.HandleFunc("GET /admin/metrics", apiCfg.handlerMetrics)
 
+	mux.HandleFunc("POST /api/users", apiCfg.handlerUsersCreate)
+
 	srv := &http.Server{
 		Addr:    ":" + port,
 		Handler: mux,
