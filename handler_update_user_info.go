@@ -3,16 +3,19 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/golang-jwt/jwt/v5"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type UpdateResponse struct {
-	ID    int    `json:"id"`
-	Email string `json:"email"`
-	Token string `json:"token"`
+	Id       int    `json:"id"`
+	Email    string `json:"email"`
+	Password string `json:"password"`
 }
 
 func (cfg *apiConfig) handlerUpdateUserInfo(w http.ResponseWriter, r *http.Request) {
@@ -35,7 +38,7 @@ func (cfg *apiConfig) handlerUpdateUserInfo(w http.ResponseWriter, r *http.Reque
 
 	fmt.Println("token came as:", tokenString)
 
-	claims := jwt.RegisteredClaims{}
+	claims := jwt.MapClaims{}
 
 	token, err := jwt.ParseWithClaims(tokenString, claims, func(t *jwt.Token) (interface{}, error) {
 		fmt.Println("the token I'm returning is:", []byte(cfg.jwtSecret))
@@ -44,23 +47,46 @@ func (cfg *apiConfig) handlerUpdateUserInfo(w http.ResponseWriter, r *http.Reque
 
 	// an error will return if the token is not valid or expired
 	if err != nil {
-		respondWithError(w, http.StatusUnauthorized, "Token is invalid")
+		log.Println("Something went wrong with the token:", err)
+		respondWithError(w, http.StatusUnauthorized, "Invalid Token")
 		return
 	}
 
 	userId, err := token.Claims.GetSubject()
 
 	if err != nil {
+		fmt.Println("Something went wrong while parsing the user id:", err)
 		respondWithError(w, http.StatusInternalServerError, "Could not get the UserId...")
 		return
 	}
 
 	fmt.Println("The user is:", userId)
 
-	// user, _, err := cfg.DB.GetUserByEmail(params.Email)
+	id, err := strconv.Atoi(userId)
 
-	respondWithJSON(w, http.StatusOK, LoginResponse{
-		ID:    1,
-		Email: "2",
+	if err != nil {
+		fmt.Println(err)
+		respondWithError(w, http.StatusInternalServerError, "Could not parse the user id...")
+		return
+	}
+
+	hash, err := bcrypt.GenerateFromPassword([]byte(params.Password), bcrypt.DefaultCost)
+
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Could not hash the password")
+		return
+	}
+
+	user, err := cfg.DB.UpdateUser(int(id), params.Email, string(hash))
+
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Could not update user...")
+		return
+	}
+
+	respondWithJSON(w, http.StatusOK, UpdateResponse{
+		Id:       user.ID,
+		Email:    user.Email,
+		Password: string(hash),
 	})
 }

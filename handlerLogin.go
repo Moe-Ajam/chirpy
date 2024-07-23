@@ -38,8 +38,13 @@ func (cfg *apiConfig) handlerLogin(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Println("expiry time is set to:", params.ExpiresInSeconds)
 
+	user, exists, err := cfg.DB.GetUserByEmail(params.Email)
+
+	fmt.Println("the original user id is:", user.ID)
+	fmt.Println("the string version of the user id is:", fmt.Sprintf("%d", user.ID))
+
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.RegisteredClaims{Issuer: "chirpy", IssuedAt: jwt.NewNumericDate(time.Now().UTC()),
-		ExpiresAt: jwt.NewNumericDate(time.Now().UTC().Add(time.Duration(params.ExpiresInSeconds) * time.Second)), Subject: params.Email})
+		ExpiresAt: jwt.NewNumericDate(time.Now().UTC().Add(time.Duration(params.ExpiresInSeconds) * time.Second)), Subject: fmt.Sprintf("%d", user.ID)})
 
 	signedToken, err := token.SignedString([]byte(cfg.jwtSecret))
 
@@ -48,13 +53,6 @@ func (cfg *apiConfig) handlerLogin(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		fmt.Println(err)
 		respondWithError(w, http.StatusInternalServerError, "Could not sign the token...")
-		return
-	}
-
-	user, exists, err := cfg.DB.GetUserByEmail(params.Email)
-
-	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "Could not fetch user")
 		return
 	}
 
