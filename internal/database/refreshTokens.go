@@ -8,6 +8,8 @@ import (
 
 type RefreshToken struct {
 	Token      string    `json:"token"`
+	Email      string    `json:"email"`
+	UserId     int       `json:"user_id"`
 	ExpiryDate time.Time `json:"expiry_date"`
 }
 
@@ -19,7 +21,7 @@ func (db *DB) GetRefreshToken(receivedRefreshToken string) (RefreshToken, error)
 	}
 
 	for _, refreshToken := range dbStructure.RefreshTokens {
-		if refreshToken.Token == receivedRefreshToken {
+		if refreshToken.Token == receivedRefreshToken && refreshToken.ExpiryDate.Sub(time.Now().UTC()) > 0 {
 			return refreshToken, nil
 		}
 	}
@@ -27,7 +29,7 @@ func (db *DB) GetRefreshToken(receivedRefreshToken string) (RefreshToken, error)
 	return RefreshToken{}, errors.New("Token doesn't exist")
 }
 
-func (db *DB) CreateRefreshToken(refreshTokenToBeSaved string) (RefreshToken, error) {
+func (db *DB) CreateRefreshToken(refreshTokenToBeSaved string, email string, userId int) (RefreshToken, error) {
 	dbStructure, err := db.loadDB()
 
 	fmt.Println("loading db...")
@@ -44,6 +46,8 @@ func (db *DB) CreateRefreshToken(refreshTokenToBeSaved string) (RefreshToken, er
 
 	refreshToken := RefreshToken{
 		Token:      refreshTokenToBeSaved,
+		Email:      email,
+		UserId:     userId,
 		ExpiryDate: time.Now().UTC().Add(60 * 24 * time.Hour),
 	}
 
@@ -58,4 +62,21 @@ func (db *DB) CreateRefreshToken(refreshTokenToBeSaved string) (RefreshToken, er
 	}
 
 	return refreshToken, nil
+}
+
+func (db *DB) RevokeRefreshToken(receivedRefreshToken string) (bool, error) {
+	dbStructure, err := db.loadDB()
+	if err != nil {
+		return false, err
+	}
+
+	for ky, refreshToken := range dbStructure.RefreshTokens {
+		if refreshToken.Token == receivedRefreshToken {
+			delete(dbStructure.RefreshTokens, ky)
+			db.writeDB(dbStructure)
+			return true, nil
+		}
+	}
+
+	return false, errors.New("Token doesn't exist")
 }

@@ -81,7 +81,7 @@ func (cfg *apiConfig) handlerLogin(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Println("The hex value of the token is:", encodedToken)
 
-	_, err = cfg.DB.CreateRefreshToken(encodedToken)
+	_, err = cfg.DB.CreateRefreshToken(encodedToken, user.Email, user.ID)
 
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Could not save the refresh token to Database")
