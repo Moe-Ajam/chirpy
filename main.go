@@ -52,6 +52,8 @@ func main() {
 
 	mux.HandleFunc("PUT /api/users", apiCfg.handlerUpdateUserInfo)
 
+	mux.HandleFunc("POST /api/refresh", apiCfg.handlerRefresh)
+
 	srv := &http.Server{
 		Addr:    ":" + port,
 		Handler: mux,
