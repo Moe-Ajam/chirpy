@@ -57,11 +57,6 @@ func (cfg *apiConfig) handlerChirpsCreate(w http.ResponseWriter, r *http.Request
 		respondWithError(w, http.StatusInternalServerError, "Could not parse the user id...")
 		return
 	}
-	if err != nil {
-		fmt.Println("Something went wrong while parsing the user id:", err)
-		respondWithError(w, http.StatusInternalServerError, "Could not get the UserId...")
-		return
-	}
 
 	cleaned, err := validateChirp(params.Body)
 	if err != nil {
@@ -69,7 +64,7 @@ func (cfg *apiConfig) handlerChirpsCreate(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	chirp, err := cfg.DB.CreateChirp(cleaned)
+	chirp, err := cfg.DB.CreateChirp(cleaned, id)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Couldn't create chirp")
 		return
