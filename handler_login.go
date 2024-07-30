@@ -17,6 +17,7 @@ type LoginResponse struct {
 	Email        string `json:"email"`
 	Token        string `json:"token"`
 	RefreshToken string `json:"refresh_token"`
+	IsChirpyRed  bool   `json:"is_chirpy_red"`
 }
 
 func (cfg *apiConfig) handlerLogin(w http.ResponseWriter, r *http.Request) {
@@ -37,15 +38,10 @@ func (cfg *apiConfig) handlerLogin(w http.ResponseWriter, r *http.Request) {
 
 	user, exists, err := cfg.DB.GetUserByEmail(params.Email)
 
-	fmt.Println("the original user id is:", user.ID)
-	fmt.Println("the string version of the user id is:", fmt.Sprintf("%d", user.ID))
-
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.RegisteredClaims{Issuer: "chirpy", IssuedAt: jwt.NewNumericDate(time.Now().UTC()),
 		ExpiresAt: jwt.NewNumericDate(time.Now().UTC().Add(1 * time.Hour)), Subject: fmt.Sprintf("%d", user.ID)})
 
 	signedToken, err := token.SignedString([]byte(cfg.jwtSecret))
-
-	fmt.Println("signed token:", signedToken)
 
 	if err != nil {
 		fmt.Println(err)
@@ -75,11 +71,7 @@ func (cfg *apiConfig) handlerLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Println("The randomly generated refresh token bytes are:", randomBytes)
-
 	encodedToken := hex.EncodeToString(randomBytes)
-
-	fmt.Println("The hex value of the token is:", encodedToken)
 
 	_, err = cfg.DB.CreateRefreshToken(encodedToken, user.Email, user.ID)
 
@@ -93,5 +85,6 @@ func (cfg *apiConfig) handlerLogin(w http.ResponseWriter, r *http.Request) {
 		Email:        user.Email,
 		Token:        signedToken,
 		RefreshToken: encodedToken,
+		IsChirpyRed:  user.IsChirpyRed,
 	})
 }
