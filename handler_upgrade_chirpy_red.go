@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
+	"strings"
 )
 
 func (cfg *apiConfig) handlerUpgradeChirpyRed(w http.ResponseWriter, r *http.Request) {
@@ -19,6 +21,13 @@ func (cfg *apiConfig) handlerUpgradeChirpyRed(w http.ResponseWriter, r *http.Req
 	decoder := json.NewDecoder(r.Body)
 	params := parameters{}
 	err := decoder.Decode(&params)
+
+	keyReceived := strings.TrimPrefix(r.Header.Get("Authorization"), "ApiKey ")
+
+	if keyReceived != os.Getenv("POLKA_KEY") {
+		respondWithError(w, 401, "The presented Plka key is not valid")
+		return
+	}
 
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Could not decode parameters...")

@@ -121,7 +121,6 @@ func (db *DB) UpgradeToChirpyRed(id int) error {
 	existingUser, exists := dbStructure.Users[id]
 
 	if !exists {
-		fmt.Println(err)
 		return errors.New("User does not exist")
 	}
 	existingUser.IsChirpyRed = true
