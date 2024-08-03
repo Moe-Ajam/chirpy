@@ -1,12 +1,53 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 	"sort"
 	"strconv"
 )
 
 func (cfg *apiConfig) handlerChirpsRetrieve(w http.ResponseWriter, r *http.Request) {
+	queryAuthorId := r.URL.Query().Get("author_id")
+	querySort := r.URL.Query().Get("sort")
+
+	if queryAuthorId != "" {
+		authorId, err := strconv.Atoi(queryAuthorId)
+
+		if err != nil {
+			fmt.Println("Something went wrong while converting", queryAuthorId, "into a number")
+			return
+		}
+		dbChirps, err := cfg.DB.GetChirpsByAuthor(authorId)
+		if err != nil {
+			respondWithError(w, http.StatusInternalServerError, "Couldn't retrieve chirps")
+			return
+		}
+
+		chirps := []Chirp{}
+		for _, dbChirp := range dbChirps {
+			chirps = append(chirps, Chirp{
+				ID:       dbChirp.ID,
+				Body:     dbChirp.Body,
+				AuthorId: dbChirp.AuthorId,
+			})
+		}
+
+		if querySort == "asc" {
+			sort.Slice(chirps, func(i, j int) bool {
+				return chirps[i].ID < chirps[j].ID
+			})
+		}
+		if querySort == "desc" {
+			sort.Slice(chirps, func(i, j int) bool {
+				return chirps[i].ID > chirps[j].ID
+			})
+		}
+
+		respondWithJSON(w, http.StatusOK, chirps)
+		return
+	}
+
 	dbChirps, err := cfg.DB.GetChirps()
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Couldn't retrieve chirps")
@@ -16,14 +57,22 @@ func (cfg *apiConfig) handlerChirpsRetrieve(w http.ResponseWriter, r *http.Reque
 	chirps := []Chirp{}
 	for _, dbChirp := range dbChirps {
 		chirps = append(chirps, Chirp{
-			ID:   dbChirp.ID,
-			Body: dbChirp.Body,
+			ID:       dbChirp.ID,
+			Body:     dbChirp.Body,
+			AuthorId: dbChirp.AuthorId,
 		})
 	}
 
-	sort.Slice(chirps, func(i, j int) bool {
-		return chirps[i].ID < chirps[j].ID
-	})
+	if querySort == "asc" {
+		sort.Slice(chirps, func(i, j int) bool {
+			return chirps[i].ID < chirps[j].ID
+		})
+	}
+	if querySort == "desc" {
+		sort.Slice(chirps, func(i, j int) bool {
+			return chirps[i].ID > chirps[j].ID
+		})
+	}
 
 	respondWithJSON(w, http.StatusOK, chirps)
 }
